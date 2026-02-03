@@ -5,18 +5,17 @@ def get_bisection(func, point):
     for i in range(max_iter):
         c = (a + b) / 2.0
 
-        if f(a)*f(c) < 0:
+        if func(a)*func(c) < 0:
             b = c
-        elif f(c)*f(b) < 0:
+        elif func(c)*func(b) < 0:
             a = c
         else:
-            if f(a) == 0:
+            if func(a) == 0:
                 c = a
-            elif f(b) == 0:
+            elif func(b) == 0:
                 c = b
 
-        print(i, c, f(c))
-
+        print(i, c, func(c))
 
 def f(x):
     return x**2 - 4
