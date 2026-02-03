@@ -1,5 +1,3 @@
-import math
-
 ##################################################
 ##################################################
 
@@ -25,14 +23,19 @@ def get_bisection(point, func, eps = 0.001, max_iter = 100):
         f_val = func(c)
         log(i, c, f_val)
 
+        if func(a) * func(c) < 0:
+            b = c
+        elif func(c) * func(b) < 0:
+            a = c
+        else:
+            if func(a) == 0:
+                c = a
+            elif func(b) == 0:
+                c = b
+        
         if abs(f_val) < eps or abs(b - a) < eps:
             print("Converged")
             return c
-        
-        if func(a) * func(c) < 0:
-            b = c
-        else:
-            a = c
 
     print("!!Did not converge max iterations.")
     return (a + b) / 2.0
@@ -77,7 +80,7 @@ print("Bisection algorithm")
 get_bisection(
     point = (a, b),
     func = f,
-    # eps = eps,
+    eps = eps,
 )
 
 ##################################################
