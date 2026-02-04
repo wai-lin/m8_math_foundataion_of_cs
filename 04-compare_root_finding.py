@@ -40,7 +40,6 @@ def get_bisection(point, func, eps = 0.001, max_iter = 100):
     print("!!Did not converge max iterations.")
     return (a + b) / 2.0
 
-
 ##################################################
 ##################################################
 
