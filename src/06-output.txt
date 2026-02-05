@@ -1,0 +1,46 @@
+> python src/06-gauss_elimination.py
+
+Matrix A: [[1, 1, 1], [3, 2, 1], [2, -1, 4]]
+Vector b: [6, 10, 12]
+
+Step 1:
+  Row1 x Row0; Mul:-3.0
+  Updated row 1: [3, -1.0, -2.0]: -8.0
+  Row2 x Row0; Mul:-2.0
+  Updated row 2: [2, -3.0, 2.0]: 0.0
+
+Step 2:
+  Row2 x Row1; Mul:-3.0
+  Updated row 2: [2, -3.0, 8.0]: 24.0
+
+
+A: [[1, 1, 1], [3, -1.0, -2.0], [2, -3.0, 8.0]]
+b: [6, -8.0, 24.0]
+Solution: [1.0, 2.0, 3.0]
+
+==============================
+
+==============================
+
+Matrix A: [[1, 2, 3], [2, 5, 2], [3, 7, 5]]
+Vector b: [14, 18, 20]
+
+Step 1:
+  Row1 x Row0; Mul:-2.0
+  Updated row 1: [2, 1.0, -4.0]: -10.0
+  Row2 x Row0; Mul:-3.0
+  Updated row 2: [3, 1.0, -4.0]: -22.0
+
+Step 2:
+  Row2 x Row1; Mul:-1.0
+  Updated row 2: [3, 1.0, 0.0]: -12.0
+Matrix is singular. No unique solution.
+
+
+A: None
+b: None
+Solution: None
+
+==============================
+
+==============================
