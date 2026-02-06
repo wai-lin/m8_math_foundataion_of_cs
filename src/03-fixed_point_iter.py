@@ -4,14 +4,18 @@
 
 import math
 
+
 def g(x):
     return math.sqrt(x + 2)
+
 
 eps = 0.001
 x0 = 3
 
+
 def log(i, x):
     print(f"iter: {i+1}, x: {x:2.6f}")
+
 
 def fixed_point():
     max_iter = 100
@@ -23,5 +27,6 @@ def fixed_point():
             return x_next
         x = x_next
     return x
+
 
 fixed_point()

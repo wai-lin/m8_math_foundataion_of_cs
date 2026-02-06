@@ -3,10 +3,12 @@ Bisection for functions with multiple roots
 """
 import math
 
+
 def log(i, x, f_val):
     print(f"iter: {i+1}, x: {x:2.6f}, f(x): {f_val:2.6f}")
 
-def get_bisection(point, func, eps = 0.001, max_iter = 100):
+
+def get_bisection(point, func, eps=0.001, max_iter=100):
     a, b = point
 
     for i in range(max_iter):
@@ -34,8 +36,10 @@ def get_bisection(point, func, eps = 0.001, max_iter = 100):
 ##################################################
 ##################################################
 
+
 def f(x):
     return x**4 + (3 * x**3) + x**2 - (2 * x) - 0.5
+
 
 x0, x1 = (-3, 2)
 segs_count = 100

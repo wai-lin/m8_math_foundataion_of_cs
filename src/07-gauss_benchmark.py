@@ -4,7 +4,7 @@
 def gauss_elimination(A, b):
     print(f"\nMatrix A: {A}")
     print(f"\nVector b: {b}")
-    n  = len(A)
+    n = len(A)
 
     # Forward pass of elimination
     for i in range(n-1):
@@ -36,11 +36,13 @@ def gauss_elimination(A, b):
     print(f"\nSolution: {x_sol}")
     return x_sol
 
+
 def gen_hilbert_matrix(n):
     H = [[1 / (i + j + 1) for j in range(n)] for i in range(n)]
     return H
 
 # gauss_elimination(A, b)
+
 
 print("\n==============================")
 print("\n==============================")

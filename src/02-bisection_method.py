@@ -17,19 +17,24 @@ def get_bisection(func, point):
 
         print(i, c, func(c))
 
+
 def f(x):
     return x**2 - 4
+
+
 print("==================================================")
 print("f(x) = x**2 - 4")
 print("==================================================\n")
 point = (0, 3)
 get_bisection(f, point)
 
+
 def f(x):
     return x**3 - 2 + x**2
+
+
 print("\n\n==================================================")
 print("f(x) = x**3 - 2 + x**2")
 print("==================================================\n")
 point = (-1, 5)
 get_bisection(f, point)
-

@@ -2,7 +2,8 @@ import math
 
 
 def is_inside(x, y):
-    return math.sqrt(x**2 + y**2)<=1
+    return math.sqrt(x**2 + y**2) <= 1
+
 
 def approx_area(p1, p2, p3, p4):
     a, b = (p1, p2)
@@ -25,9 +26,9 @@ def approx_area(p1, p2, p3, p4):
             x3, y3 = x_segs[i+1], y_segs[j]
             x4, y4 = x_segs[i+1], y_segs[j+1]
 
-            if is_inside(x1, y1) and is_inside(x2,y2) and is_inside(x3,y3) and is_inside (x4,y4):
+            if is_inside(x1, y1) and is_inside(x2, y2) and is_inside(x3, y3) and is_inside(x4, y4):
                 inside_count += 1
-            elif is_inside(x1, y1) or is_inside(x2,y2) or is_inside(x3,y3) or is_inside (x4,y4):
+            elif is_inside(x1, y1) or is_inside(x2, y2) or is_inside(x3, y3) or is_inside(x4, y4):
                 on_edge_count += 1
 
     rect_area = h * h
@@ -45,4 +46,3 @@ def approx_area(p1, p2, p3, p4):
 approx_area(-1, 1, -1, 1)
 approx_area(-1, 3, -1, 3)
 approx_area(-2, 4, -2, 4)
-
