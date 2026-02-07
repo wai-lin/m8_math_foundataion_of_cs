@@ -14,8 +14,8 @@ def jacobi_iter(A, b, x0=None, eps=1e-10, max_iter=100, debug=False):
         x0 = [0.0] * len_A
     x = x0.copy()
 
-    # x1(k+1) = (b1 - a12 * x2(k)) / a11
-    # x2(k+1) = (b2 - a21 * x1(k)) / a22
+    # x1(k+1) = (b1 - SUM(a12 * x2(k) + ... )) / a11
+    # x2(k+1) = (b2 - SUM(a21 * x1(k) + ... )) / a22
     # ...
     for k in range(max_iter):
         x_new = [0.0] * len_A
