@@ -1,11 +1,10 @@
 import math
+import numpy as np
+import random
 
 
-def euclidean_dist(n, x1, x2):
-    diff_val = 0.0
-    for i in range(n):
-        diff_val += (x1[i] - x2[i]) ** 2
-    return math.sqrt(diff_val)
+def euclidean_dist(x1, x2):
+    return np.linalg.norm(np.array(x1) - np.array(x2))
 
 
 def jacobi_iter(A, b, x0=None, eps=1e-10, max_iter=100, debug=False):
@@ -27,10 +26,10 @@ def jacobi_iter(A, b, x0=None, eps=1e-10, max_iter=100, debug=False):
                     sum_ax += A[i][j] * x[j]
             x_new[i] = (b[i] - sum_ax) / A[i][i]
 
-        euclid_dist = euclidean_dist(len_A, x_new, x)
+        euclid_dist = euclidean_dist(x_new, x)
 
         if debug:
-            print_x = [f'{xi:.6f}' for xi in x]
+            print_x = [f'{xi:.6f}' for xi in x_new]
             print(f"Iteration {k+1}: x = {print_x}")
 
         if euclid_dist < eps:
@@ -42,14 +41,19 @@ def jacobi_iter(A, b, x0=None, eps=1e-10, max_iter=100, debug=False):
 
 
 def solve_jacobi(A, b, debug=False):
+    print("==============================")
+    print("Jacobi Iteration Method")
+    print(f"Matrix A: {A}")
+    print(f"Vector b: {b}\n")
     x_sol = jacobi_iter(A, b, debug=debug)
     print_x = [f"{x:.2f}" for x in x_sol]
     print(f"\nSolution: {print_x}")
     print("==============================\n")
 
 
-def gen_jacobi_matrix(n):
+def gen_matrix(n):
     J = [[0 for _ in range(n)] for _ in range(n)]
+    b = [random.choice([0, 1]) for _ in range(n)]
     for i in range(n):
         for j in range(n):
             if i == j:
@@ -58,7 +62,7 @@ def gen_jacobi_matrix(n):
                 J[i][j] = -1
             else:
                 J[i][j] = 0
-    return J
+    return J, b
 
 
 solve_jacobi(
@@ -70,8 +74,9 @@ solve_jacobi(
     b=[3, -2],
 )
 
+A, b = gen_matrix(5)
 solve_jacobi(
     debug=True,
-    A=gen_jacobi_matrix(5),
-    b=[1, 0, 0, 0, 1],
+    A=A,
+    b=b,
 )
