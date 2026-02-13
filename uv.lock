@@ -415,6 +415,7 @@ dependencies = [
     { name = "numpy" },
     { name = "pandas" },
     { name = "scikit-image" },
+    { name = "scipy" },
 ]
 
 [package.metadata]
@@ -424,6 +425,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.4.2" },
     { name = "pandas", specifier = ">=3.0.0" },
     { name = "scikit-image", specifier = ">=0.26.0" },
+    { name = "scipy", specifier = ">=1.17.0" },
 ]
 
 [[package]]
