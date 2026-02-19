@@ -9,4 +9,6 @@ dependencies = [
     "matplotlib>=3.10.8",
     "numpy>=2.4.2",
     "pandas>=3.0.0",
+    "flask>=3.0.0",
+    "flask-cors>=4.0.0",
 ]
