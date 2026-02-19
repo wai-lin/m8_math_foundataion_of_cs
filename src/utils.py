@@ -2,6 +2,8 @@
 Utility functions for gradient descent visualization.
 """
 
+import numpy as np
+
 
 def generate_1d_data(num_samples=50, slope=2.0, intercept=3.0, noise_std=0.5):
     """
@@ -14,20 +16,12 @@ def generate_1d_data(num_samples=50, slope=2.0, intercept=3.0, noise_std=0.5):
         noise_std: Standard deviation of noise
 
     Returns:
-        (X, y) where X is list of x values, y is list of y values
+        (X, y) where X is (n, 1) array, y is (n,) array
     """
-    import random
-
-    random.seed(42)
-    X = []
-    y = []
-
-    for i in range(num_samples):
-        x = (i / num_samples) * 10 - 5  # Range [-5, 5]
-        noise = random.gauss(0, noise_std)
-        y_true = slope * x + intercept
-        X.append([x])
-        y.append(y_true + noise)
+    np.random.seed(42)
+    X = np.linspace(-5, 5, num_samples).reshape(-1, 1)
+    noise = np.random.normal(0, noise_std, num_samples)
+    y = slope * X.ravel() + intercept + noise
 
     return X, y
 
@@ -41,22 +35,16 @@ def generate_2d_data(num_samples=100, noise_std=0.5):
         noise_std: Standard deviation of noise
 
     Returns:
-        (X, y) where X is list of [x1, x2] pairs, y is list of y values
+        (X, y) where X is (n, 2) array, y is (n,) array
     """
-    import random
-
-    random.seed(42)
-    X = []
-    y = []
-
+    np.random.seed(42)
     # True plane: y = 2*x1 - x2 + 3
-    for i in range(num_samples):
-        x1 = ((i % 10) / 10) * 4 - 2
-        x2 = ((i // 10) / 10) * 4 - 2
-        noise = random.gauss(0, noise_std)
-        y_true = 2 * x1 - x2 + 3
-        X.append([x1, x2])
-        y.append(y_true + noise)
+    X1 = np.random.uniform(-2, 2, num_samples)
+    X2 = np.random.uniform(-2, 2, num_samples)
+    X = np.column_stack([X1, X2])
+
+    noise = np.random.normal(0, noise_std, num_samples)
+    y = 2 * X1 - X2 + 3 + noise
 
     return X, y
 

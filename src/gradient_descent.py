@@ -5,6 +5,8 @@ Gradient Descent Algorithms for Linear Regression
 Three variants of gradient descent for minimizing least squares loss.
 """
 
+import numpy as np
+
 
 class GradientDescentOptimizer:
     """Base class for gradient descent optimizers."""
@@ -29,21 +31,19 @@ class GradientDescentOptimizer:
     def compute_loss(self, X, y, coeffs):
         """Compute MSE loss: (1/2n) * ||X*coeffs - y||^2"""
         predictions = self._predict(X, coeffs)
-        loss = 0.0
-        for i in range(len(y)):
-            residual = predictions[i] - y[i]
-            loss += residual * residual
-        return loss / (2.0 * len(y))
+        residuals = predictions - y
+        loss = np.sum(residuals ** 2) / (2.0 * len(y))
+        return float(loss)
 
     def _predict(self, X, coeffs):
-        """Predict values. X is list of rows, each row is a sample."""
-        predictions = []
-        for sample in X:
-            pred = coeffs[0]  # bias term
-            for i in range(1, len(coeffs)):
-                pred += coeffs[i] * sample[i-1]
-            predictions.append(pred)
-        return predictions
+        """
+        Predict values.
+        X: (n, m) array where n=samples, m=features
+        coeffs: (m+1,) array [bias, w1, w2, ...]
+        Returns: (n,) array of predictions
+        """
+        X_with_bias = np.column_stack([np.ones(len(X)), X])
+        return X_with_bias @ coeffs
 
     def fit(self, X, y, coeffs_init):
         """Fit the model. Override in subclasses."""
@@ -59,29 +59,12 @@ class VanillaGradientDescent(GradientDescentOptimizer):
     def compute_gradient(self, X, y, coeffs):
         """
         Compute gradient of loss w.r.t. coefficients.
-        grad_loss = (1/n) * X^T * (X*coeffs - y)
-        Returns list of gradients [grad_c0, grad_c1, ...]
+        grad = (1/n) * X^T * (predictions - y)
         """
-        n = len(y)
-        num_features = len(coeffs)
-        gradients = [0.0] * num_features
-
-        # Compute predictions
-        predictions = self._predict(X, coeffs)
-
-        # Gradient for bias term (c0)
-        for i in range(n):
-            error = predictions[i] - y[i]
-            gradients[0] += error
-        gradients[0] /= n
-
-        # Gradient for feature weights (c1, c2, ...)
-        for j in range(1, num_features):
-            for i in range(n):
-                error = predictions[i] - y[i]
-                gradients[j] += error * X[i][j-1]
-            gradients[j] /= n
-
+        X_with_bias = np.column_stack([np.ones(len(X)), X])
+        predictions = X_with_bias @ coeffs
+        errors = predictions - y
+        gradients = X_with_bias.T @ errors / len(y)
         return gradients
 
     def fit(self, X, y, coeffs_init):
@@ -89,15 +72,17 @@ class VanillaGradientDescent(GradientDescentOptimizer):
         Vanilla batch gradient descent.
 
         Args:
-            X: List of lists, each inner list is features for one sample
-            y: List of target values
-            coeffs_init: Initial coefficients [c0, c1, ...]
+            X: (n, m) array - n samples, m features
+            y: (n,) array - target values
+            coeffs_init: (m+1,) array - initial coefficients [bias, w1, w2, ...]
 
         Returns:
-            Trained coefficients and history
+            Trained coefficients
         """
         self.reset_history()
-        coeffs = list(coeffs_init)
+        X = np.array(X)
+        y = np.array(y)
+        coeffs = np.array(coeffs_init, dtype=float)
 
         for iteration in range(self.max_iterations):
             # Compute loss and gradient
@@ -106,16 +91,12 @@ class VanillaGradientDescent(GradientDescentOptimizer):
 
             # Store history
             self.history['loss'].append(loss)
-            self.history['coefficients'].append(list(coeffs))
-            self.history['gradients'].append(list(gradients))
+            self.history['coefficients'].append(coeffs.copy())
+            self.history['gradients'].append(gradients.copy())
 
             # Update coefficients
-            grad_norm = 0.0
-            for i in range(len(coeffs)):
-                coeffs[i] -= self.learning_rate * gradients[i]
-                grad_norm += gradients[i] * gradients[i]
-
-            grad_norm = grad_norm ** 0.5
+            coeffs -= self.learning_rate * gradients
+            grad_norm = np.linalg.norm(gradients)
 
             if grad_norm < self.tolerance:
                 break
@@ -134,55 +115,52 @@ class StochasticGradientDescent(GradientDescentOptimizer):
         Stochastic gradient descent - one sample at a time.
 
         Args:
-            X: List of lists, each inner list is features for one sample
-            y: List of target values
-            coeffs_init: Initial coefficients [c0, c1, ...]
+            X: (n, m) array
+            y: (n,) array
+            coeffs_init: (m+1,) array
 
         Returns:
-            Trained coefficients and history
+            Trained coefficients
         """
         self.reset_history()
-        coeffs = list(coeffs_init)
+        X = np.array(X)
+        y = np.array(y)
+        coeffs = np.array(coeffs_init, dtype=float)
         n = len(y)
 
         for iteration in range(self.max_iterations):
-            # Shuffle data (simple in-place shuffle)
-            indices = list(range(n))
-            for i in range(n-1, 0, -1):
-                j = (iteration * (i+1)) % (i+1)  # pseudo-random
-                indices[i], indices[j] = indices[j], indices[i]
+            # Shuffle indices
+            indices = np.random.permutation(n)
 
             total_loss = 0.0
             grad_norm = 0.0
 
             # Process one sample at a time
             for idx in indices:
-                sample = [X[idx]]
-                target = [y[idx]]
+                X_i = X[idx:idx+1]  # Keep 2D shape
+                y_i = y[idx:idx+1]
 
                 # Compute gradient for single sample
-                prediction = self._predict(sample, coeffs)[0]
-                error = prediction - target[0]
+                X_with_bias = np.column_stack([1.0, X_i])
+                prediction = X_with_bias @ coeffs
+                error = prediction - y_i
+
+                # Gradient for this sample
+                gradient = X_with_bias.T @ error
 
                 # Update coefficients
-                gradients = [0.0] * len(coeffs)
-                gradients[0] = error
-                for j in range(1, len(coeffs)):
-                    gradients[j] = error * sample[0][j-1]
-
-                for i in range(len(coeffs)):
-                    coeffs[i] -= self.learning_rate * gradients[i]
-                    grad_norm += gradients[i] * gradients[i]
+                coeffs -= self.learning_rate * gradient.ravel()
+                grad_norm += np.sum(gradient ** 2)
 
                 # Accumulate loss
-                total_loss += error * error / 2.0
+                total_loss += float(error[0] ** 2) / 2.0
 
             total_loss /= n
-            grad_norm = grad_norm ** 0.5
+            grad_norm = np.sqrt(grad_norm)
 
             # Store history
             self.history['loss'].append(total_loss)
-            self.history['coefficients'].append(list(coeffs))
+            self.history['coefficients'].append(coeffs.copy())
 
             if grad_norm < self.tolerance:
                 break
@@ -206,23 +184,22 @@ class MiniBatchGradientDescent(GradientDescentOptimizer):
         Mini-batch gradient descent.
 
         Args:
-            X: List of lists, each inner list is features for one sample
-            y: List of target values
-            coeffs_init: Initial coefficients [c0, c1, ...]
+            X: (n, m) array
+            y: (n,) array
+            coeffs_init: (m+1,) array
 
         Returns:
-            Trained coefficients and history
+            Trained coefficients
         """
         self.reset_history()
-        coeffs = list(coeffs_init)
+        X = np.array(X)
+        y = np.array(y)
+        coeffs = np.array(coeffs_init, dtype=float)
         n = len(y)
 
-        for iteration in range(self.max_iterations):
-            # Shuffle indices for each epoch
-            indices = list(range(n))
-            for i in range(n-1, 0, -1):
-                j = (iteration * (i+1)) % (i+1)  # pseudo-random
-                indices[i], indices[j] = indices[j], indices[i]
+        for _iteration in range(self.max_iterations):
+            # Shuffle indices for this epoch
+            indices = np.random.permutation(n)
 
             total_loss = 0.0
             epoch_grad_norm = 0.0
@@ -231,36 +208,34 @@ class MiniBatchGradientDescent(GradientDescentOptimizer):
             for batch_start in range(0, n, self.batch_size):
                 batch_end = min(batch_start + self.batch_size, n)
                 batch_indices = indices[batch_start:batch_end]
-                batch_size_actual = batch_end - batch_start
 
                 # Get batch data
-                X_batch = [X[i] for i in batch_indices]
-                y_batch = [y[i] for i in batch_indices]
+                X_batch = X[batch_indices]
+                y_batch = y[batch_indices]
+                batch_size_actual = len(batch_indices)
 
                 # Compute gradient for batch
-                gradients = [0.0] * len(coeffs)
-                predictions = self._predict(X_batch, coeffs)
-
-                for i in range(len(y_batch)):
-                    error = predictions[i] - y_batch[i]
-                    total_loss += error * error / 2.0
-
-                    gradients[0] += error
-                    for j in range(1, len(coeffs)):
-                        gradients[j] += error * X_batch[i][j-1]
+                X_with_bias = np.column_stack(
+                    [np.ones(batch_size_actual), X_batch])
+                predictions = X_with_bias @ coeffs
+                errors = predictions - y_batch
 
                 # Average gradient over batch
-                for j in range(len(gradients)):
-                    gradients[j] /= batch_size_actual
-                    coeffs[j] -= self.learning_rate * gradients[j]
-                    epoch_grad_norm += gradients[j] * gradients[j]
+                gradients = X_with_bias.T @ errors / batch_size_actual
+
+                # Update coefficients
+                coeffs -= self.learning_rate * gradients
+                epoch_grad_norm += np.sum(gradients ** 2)
+
+                # Accumulate loss
+                total_loss += np.sum(errors ** 2) / 2.0
 
             total_loss /= n
-            epoch_grad_norm = epoch_grad_norm ** 0.5
+            epoch_grad_norm = np.sqrt(epoch_grad_norm)
 
             # Store history
             self.history['loss'].append(total_loss)
-            self.history['coefficients'].append(list(coeffs))
+            self.history['coefficients'].append(coeffs.copy())
 
             if epoch_grad_norm < self.tolerance:
                 break
