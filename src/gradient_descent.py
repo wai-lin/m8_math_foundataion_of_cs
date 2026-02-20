@@ -87,6 +87,13 @@ class VanillaGradientDescent(GradientDescentOptimizer):
         for iteration in range(self.max_iterations):
             # Compute loss and gradient
             loss = self.compute_loss(X, y, coeffs)
+
+            # Check for divergence
+            if np.isnan(loss) or np.isinf(loss):
+                print(f"Divergence detected at iteration {iteration}. "
+                      f"Learning rate {self.learning_rate} may be too high.")
+                break
+
             gradients = self.compute_gradient(X, y, coeffs)
 
             # Store history
@@ -157,6 +164,12 @@ class StochasticGradientDescent(GradientDescentOptimizer):
 
             total_loss /= n
             grad_norm = np.sqrt(grad_norm)
+
+            # Check for divergence
+            if np.isnan(total_loss) or np.isinf(total_loss):
+                print(f"Divergence detected at iteration {iteration}. "
+                      f"Learning rate {self.learning_rate} may be too high.")
+                break
 
             # Store history
             self.history['loss'].append(total_loss)
@@ -232,6 +245,12 @@ class MiniBatchGradientDescent(GradientDescentOptimizer):
 
             total_loss /= n
             epoch_grad_norm = np.sqrt(epoch_grad_norm)
+
+            # Check for divergence
+            if np.isnan(total_loss) or np.isinf(total_loss):
+                print(f"Divergence detected at iteration {_iteration}. "
+                      f"Learning rate {self.learning_rate} may be too high.")
+                break
 
             # Store history
             self.history['loss'].append(total_loss)

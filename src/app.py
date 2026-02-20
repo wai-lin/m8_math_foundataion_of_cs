@@ -115,7 +115,8 @@ def optimize():
 
     # Convert NumPy arrays to lists for JSON serialization
     final_coeffs_list = final_coeffs.tolist() if hasattr(
-        final_coeffs, 'tolist') else list(final_coeffs)
+        final_coeffs, 'tolist'
+    ) else list(final_coeffs)
     history_coeffs = [c.tolist() if hasattr(c, 'tolist') else list(c)
                       for c in optimizer.history['coefficients']]
 
