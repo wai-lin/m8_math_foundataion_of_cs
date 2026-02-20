@@ -28,12 +28,31 @@ class GradientDescentOptimizer:
             'gradients': []
         }
 
+    def is_converged(self, total_loss, iteration):
+        if np.isnan(total_loss) or np.isinf(total_loss):
+            print(f"Divergence detected at iteration {iteration}. "
+                  f"Learning rate {self.learning_rate} may be too high.")
+            return True
+        return False
+
     def compute_loss(self, X, y, coeffs):
         """Compute MSE loss: (1/2n) * ||X*coeffs - y||^2"""
         predictions = self._predict(X, coeffs)
         residuals = predictions - y
         loss = np.sum(residuals ** 2) / (2.0 * len(y))
         return float(loss)
+
+    def compute_gradient(self, X, y, coeffs):
+        """
+        Compute gradient of loss w.r.t. coefficients.
+        Works for any subset of data (single sample, mini-batch, or full batch).
+        grad = (1/n) * X^T * (predictions - y)
+        """
+        X_with_bias = np.column_stack([np.ones(len(X)), X])
+        predictions = X_with_bias @ coeffs
+        errors = predictions - y
+        gradients = X_with_bias.T @ errors / len(y)
+        return gradients
 
     def _predict(self, X, coeffs):
         """
@@ -56,17 +75,6 @@ class VanillaGradientDescent(GradientDescentOptimizer):
     Updates parameters using gradient computed from entire dataset.
     """
 
-    def compute_gradient(self, X, y, coeffs):
-        """
-        Compute gradient of loss w.r.t. coefficients.
-        grad = (1/n) * X^T * (predictions - y)
-        """
-        X_with_bias = np.column_stack([np.ones(len(X)), X])
-        predictions = X_with_bias @ coeffs
-        errors = predictions - y
-        gradients = X_with_bias.T @ errors / len(y)
-        return gradients
-
     def fit(self, X, y, coeffs_init):
         """
         Vanilla batch gradient descent.
@@ -88,10 +96,8 @@ class VanillaGradientDescent(GradientDescentOptimizer):
             # Compute loss and gradient
             loss = self.compute_loss(X, y, coeffs)
 
-            # Check for divergence
-            if np.isnan(loss) or np.isinf(loss):
-                print(f"Divergence detected at iteration {iteration}. "
-                      f"Learning rate {self.learning_rate} may be too high.")
+            # # Check for divergence
+            if self.is_converged(loss, iteration):
                 break
 
             gradients = self.compute_gradient(X, y, coeffs)
@@ -147,28 +153,20 @@ class StochasticGradientDescent(GradientDescentOptimizer):
                 X_i = X[idx:idx+1]  # Keep 2D shape
                 y_i = y[idx:idx+1]
 
-                # Compute gradient for single sample
-                X_with_bias = np.column_stack([1.0, X_i])
-                prediction = X_with_bias @ coeffs
-                error = prediction - y_i
-
-                # Gradient for this sample
-                gradient = X_with_bias.T @ error
-
-                # Update coefficients
-                coeffs -= self.learning_rate * gradient.ravel()
+                # Compute and apply gradient
+                gradient = self.compute_gradient(X_i, y_i, coeffs)
+                coeffs -= self.learning_rate * gradient
                 grad_norm += np.sum(gradient ** 2)
 
                 # Accumulate loss
-                total_loss += float(error[0] ** 2) / 2.0
+                error = self._predict(X_i, coeffs) - y_i
+                total_loss += np.sum(error ** 2) / 2.0
 
             total_loss /= n
             grad_norm = np.sqrt(grad_norm)
 
-            # Check for divergence
-            if np.isnan(total_loss) or np.isinf(total_loss):
-                print(f"Divergence detected at iteration {iteration}. "
-                      f"Learning rate {self.learning_rate} may be too high.")
+            # # Check for divergence
+            if self.is_converged(total_loss, iteration):
                 break
 
             # Store history
@@ -215,7 +213,7 @@ class MiniBatchGradientDescent(GradientDescentOptimizer):
             indices = np.random.permutation(n)
 
             total_loss = 0.0
-            epoch_grad_norm = 0.0
+            grad_norm = 0.0
 
             # Process mini-batches
             for batch_start in range(0, n, self.batch_size):
@@ -225,38 +223,28 @@ class MiniBatchGradientDescent(GradientDescentOptimizer):
                 # Get batch data
                 X_batch = X[batch_indices]
                 y_batch = y[batch_indices]
-                batch_size_actual = len(batch_indices)
 
-                # Compute gradient for batch
-                X_with_bias = np.column_stack(
-                    [np.ones(batch_size_actual), X_batch])
-                predictions = X_with_bias @ coeffs
-                errors = predictions - y_batch
-
-                # Average gradient over batch
-                gradients = X_with_bias.T @ errors / batch_size_actual
-
-                # Update coefficients
+                # Compute and apply gradient
+                gradients = self.compute_gradient(X_batch, y_batch, coeffs)
                 coeffs -= self.learning_rate * gradients
-                epoch_grad_norm += np.sum(gradients ** 2)
+                grad_norm += np.sum(gradients ** 2)
 
                 # Accumulate loss
+                errors = self._predict(X_batch, coeffs) - y_batch
                 total_loss += np.sum(errors ** 2) / 2.0
 
             total_loss /= n
-            epoch_grad_norm = np.sqrt(epoch_grad_norm)
+            grad_norm = np.sqrt(grad_norm)
 
-            # Check for divergence
-            if np.isnan(total_loss) or np.isinf(total_loss):
-                print(f"Divergence detected at iteration {_iteration}. "
-                      f"Learning rate {self.learning_rate} may be too high.")
+            # # Check for divergence
+            if self.is_converged(total_loss, _iteration):
                 break
 
             # Store history
             self.history['loss'].append(total_loss)
             self.history['coefficients'].append(coeffs.copy())
 
-            if epoch_grad_norm < self.tolerance:
+            if grad_norm < self.tolerance:
                 break
 
         return coeffs
