@@ -317,5 +317,6 @@ async function resetSession() {
 
 // Initialize
 window.addEventListener('load', () => {
+    setProblemType('1d');  // Set initial display state
     showStatus('Ready: Generate data to start', 'success');
 });
